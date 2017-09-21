@@ -19,7 +19,7 @@ package azure
 import (
 	"fmt"
 
-	azs "github.com/Azure/azure-sdk-for-go/storage"
+	azs "github.com/lawrencegripper/azure-sdk-for-go/storage"
 	"github.com/golang/glog"
 )
 

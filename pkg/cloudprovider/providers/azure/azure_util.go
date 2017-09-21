@@ -27,8 +27,8 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/kubernetes/pkg/cloudprovider"
 
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/lawrencegripper/azure-sdk-for-go/profile/latest/compute/compute"
+	"github.com/lawrencegripper/azure-sdk-for-go/profile/latest/network/network"
 	"github.com/golang/glog"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -137,12 +137,12 @@ func getProtocolsFromKubernetesProtocol(protocol v1.Protocol) (*network.Transpor
 	switch protocol {
 	case v1.ProtocolTCP:
 		transportProto = network.TransportProtocolTCP
-		securityProto = network.SecurityRuleProtocolTCP
+		securityProto = network.TCP
 		probeProto = network.ProbeProtocolTCP
 		return &transportProto, &securityProto, &probeProto, nil
 	case v1.ProtocolUDP:
 		transportProto = network.TransportProtocolUDP
-		securityProto = network.SecurityRuleProtocolUDP
+		securityProto = network.UDP
 		return &transportProto, &securityProto, nil, nil
 	default:
 		return &transportProto, &securityProto, &probeProto, fmt.Errorf("Only TCP and UDP are supported for Azure LoadBalancers")

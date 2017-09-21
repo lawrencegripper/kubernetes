@@ -25,8 +25,8 @@ import (
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	serviceapi "k8s.io/kubernetes/pkg/api/v1/service"
 
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/lawrencegripper/azure-sdk-for-go/profile/latest/compute/compute"
+	"github.com/lawrencegripper/azure-sdk-for-go/profile/latest/network/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/golang/glog"
 	"k8s.io/apimachinery/pkg/types"
@@ -806,8 +806,8 @@ func (az *Cloud) reconcileSecurityGroup(sg network.SecurityGroup, clusterName st
 					DestinationPortRange:     to.StringPtr(strconv.Itoa(int(port.Port))),
 					SourceAddressPrefix:      to.StringPtr(sourceAddressPrefixes[j]),
 					DestinationAddressPrefix: to.StringPtr("*"),
-					Access:    network.SecurityRuleAccessAllow,
-					Direction: network.SecurityRuleDirectionInbound,
+					Access:    network.Allow,
+					Direction: network.Inbound,
 				},
 			}
 		}

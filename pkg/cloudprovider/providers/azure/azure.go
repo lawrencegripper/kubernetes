@@ -29,10 +29,10 @@ import (
 	"k8s.io/kubernetes/pkg/controller"
 	"k8s.io/kubernetes/pkg/version"
 
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
-	"github.com/Azure/azure-sdk-for-go/arm/disk"
-	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/Azure/azure-sdk-for-go/arm/storage"
+	"github.com/lawrencegripper/azure-sdk-for-go/profile/latest/compute/compute"
+	"github.com/lawrencegripper/azure-sdk-for-go/profile/latest/compute/disk"
+	"github.com/lawrencegripper/azure-sdk-for-go/profile/latest/network/network"
+	"github.com/lawrencegripper/azure-sdk-for-go/profile/latest/storage/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -167,7 +167,7 @@ func GetServicePrincipalToken(config *Config, env *azure.Environment) (*adal.Ser
 	if config.UseManagedIdentityExtension {
 		glog.V(2).Infoln("azure: using managed identity extension to retrieve access token")
 		return adal.NewServicePrincipalTokenFromMSI(
-			*oauthConfig,
+			env.ActiveDirectoryEndpoint,
 			env.ServiceManagementEndpoint)
 	}
 
