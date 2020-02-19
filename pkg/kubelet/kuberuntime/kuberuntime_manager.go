@@ -413,6 +413,10 @@ type podActions struct {
 	// EphemeralContainersToStart is a list of indexes for the ephemeral containers to start,
 	// where the index is the index of the specific container in pod.Spec.EphemeralContainers.
 	EphemeralContainersToStart []int
+
+	// ContainersToPrepull is a list of containers which can be pulled async to speed things
+	// up while an init container is running
+	ContainersToPrepull []v1.Container
 }
 
 // podSandboxChanged checks whether the spec of the pod is changed and returns
@@ -505,6 +509,11 @@ func (m *kubeGenericRuntimeManager) computePodActions(pod *v1.Pod, podStatus *ku
 		if len(pod.Spec.InitContainers) != 0 {
 			// Pod has init containers, return the first one.
 			changes.NextInitContainerToStart = &pod.Spec.InitContainers[0]
+			changes.ContainersToPrepull = []v1.Container{}
+			changes.ContainersToPrepull = append(changes.ContainersToPrepull, pod.Spec.Containers...)
+			if len(pod.Spec.InitContainers) > 1 {
+				changes.ContainersToPrepull = append(changes.ContainersToPrepull, pod.Spec.InitContainers[1:]...)
+			}
 			return changes
 		}
 		// Start all containers by default but exclude the ones that succeeded if
@@ -814,6 +823,16 @@ func (m *kubeGenericRuntimeManager) SyncPod(pod *v1.Pod, podStatus *kubecontaine
 		for _, idx := range podContainerChanges.EphemeralContainersToStart {
 			c := (*v1.Container)(&pod.Spec.EphemeralContainers[idx].EphemeralContainerCommon)
 			start("ephemeral container", c)
+		}
+	}
+
+	if len(podContainerChanges.ContainersToPrepull) > 0 {
+		for _, container := range podContainerChanges.ContainersToPrepull {
+			_, _, err := m.imagePuller.EnsureImageExistsAsync(pod, &container, pullSecrets, podSandboxConfig)
+			if err != nil {
+				klog.V(3).Infof("On image: %s pre-pull failed: %v", container.Image, err)
+				continue
+			}
 		}
 	}
 
