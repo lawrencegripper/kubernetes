@@ -511,9 +511,8 @@ func (m *kubeGenericRuntimeManager) computePodActions(pod *v1.Pod, podStatus *ku
 		if len(pod.Spec.InitContainers) != 0 {
 			// Pod has init containers, return the first one.
 			changes.NextInitContainerToStart = &pod.Spec.InitContainers[0]
-			changes.ContainersToPrepull = []v1.Container{}
-			changes.ContainersToPrepull = append(changes.ContainersToPrepull, pod.Spec.InitContainers...)
-			changes.ContainersToPrepull = append(changes.ContainersToPrepull, pod.Spec.Containers...)
+			// Create a list of images that are needed with those needed first listed first
+			changes.ContainersToPrepull = append(pod.Spec.InitContainers, pod.Spec.Containers...)
 			return changes
 		}
 		// Start all containers by default but exclude the ones that succeeded if
@@ -676,6 +675,9 @@ func (m *kubeGenericRuntimeManager) SyncPod(pod *v1.Pod, podStatus *kubecontaine
 		} else {
 			klog.V(4).Infof("Stopping PodSandbox for %q because all other containers are dead.", format.Pod(pod))
 		}
+
+		// Cleanup any inflight async pull requests
+		m.imagePuller.RemoveAsyncPullsForPod(pod)
 
 		killResult := m.killPodWithSyncResult(pod, kubecontainer.ConvertPodStatusToRunningPod(m.runtimeName, podStatus), nil)
 		result.AddPodSyncResult(killResult)
