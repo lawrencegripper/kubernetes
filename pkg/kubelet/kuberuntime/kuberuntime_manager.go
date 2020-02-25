@@ -512,10 +512,8 @@ func (m *kubeGenericRuntimeManager) computePodActions(pod *v1.Pod, podStatus *ku
 			// Pod has init containers, return the first one.
 			changes.NextInitContainerToStart = &pod.Spec.InitContainers[0]
 			changes.ContainersToPrepull = []v1.Container{}
+			changes.ContainersToPrepull = append(changes.ContainersToPrepull, pod.Spec.InitContainers...)
 			changes.ContainersToPrepull = append(changes.ContainersToPrepull, pod.Spec.Containers...)
-			if len(pod.Spec.InitContainers) > 1 {
-				changes.ContainersToPrepull = append(changes.ContainersToPrepull, pod.Spec.InitContainers[1:]...)
-			}
 			return changes
 		}
 		// Start all containers by default but exclude the ones that succeeded if
@@ -828,6 +826,7 @@ func (m *kubeGenericRuntimeManager) SyncPod(pod *v1.Pod, podStatus *kubecontaine
 		}
 	}
 
+	// Async pull containers
 	if len(podContainerChanges.ContainersToPrepull) > 0 {
 		for _, container := range podContainerChanges.ContainersToPrepull {
 			_, _, err := m.imagePuller.EnsureImageExistsAsync(pod, &container, pullSecrets, podSandboxConfig)
